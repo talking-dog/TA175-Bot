@@ -10,7 +10,7 @@ Add-Type -path "C:\Program Files (x86)\Microsoft.NET\Primary Interop Assemblies\
 
 #2.0 Set passed in Parameters
 #$Date=get-date -Format('yyyyMMddHHmmss') #HC Value to test
-#$url = "http://xwing-legacy.com/?f=Galactic%20Empire&d=v8ZsZ200Z186XWWY469X204WW98WY186XWW&sn=Unnamed%20Squadron&obs=" #HC Value to test
+#$url = "http://xwing-legacy.com/?f=Galactic%20Empire&d=v8ZsZ200Z187X116W138W98W311W350W166Y196XW114WWWY515XWWWWW449&sn=Random%20Squad&obs=" #HC Value to test
 $url=$args[0]  #Passed in from external 
 $date=$args[1] #Passed in from external 
 $url.replace('"&"',"&")
@@ -22,7 +22,7 @@ $ie=""   #Set $IE to Blank
 $ie = new-object -ComObject "InternetExplorer.Application" #Create Object
 $ie.silent = $true #Open IE in the background
 $ie.navigate($url) #Load the Webpage
-while($ie.Busy) { Start-Sleep -Milliseconds 100 } #Keep checking the webpage until it is fully loaded
+while($ie.Busy) { Start-Sleep -Milliseconds 250 } #Keep checking the webpage until it is fully loaded
 Start-Sleep 10
 $InnerData= $ie.Document.documentElement.innerHTML  # Set the InnerHTML data 
 $ie.Quit()  # Close IE
@@ -156,21 +156,26 @@ $Global:FinalArray=@() #Declare FinalArray as a Global Variable
             #$Upgrade 
             $CurrentShip =@() # create Current ship Array
             $CurrentShip += $Upgrade -split('"></i>') -split('</div>') -split('"inner-circle upgrade-points">')# Add details to the Array
-            $type = $CurrentShip[0]   #Upgrade type (eg cannon)
+            #$type = $CurrentShip[0]   #Upgrade type (eg cannon)
             $Upgradecard=$CurrentShip[1] # Upgrade card eg Crackshot
             $cost = $CurrentShip[3]  #Upgrade cost
             [int]$Totalcost =[int]$Totalcost+[int]$cost # Add Upgrade cost to ship cost
-            $ValueArray += "Upgrade: "+$Upgradecard+" Type: "+$type+" Points: "+$cost # create output line into Array
+            #$ValueArray += "Upgrade: "+$Upgradecard+" Type: "+$type+" Points: "+$cost # create output line into Array
+            $ValueArray += $Upgradecard+" ("+$cost+")" # create output line into Array
             }
     #*******************
     #5.3 Output file***
     #*******************
         [int]$Totalcost = [int]$Totalcost+[int]$BasePoints # Add the Upgrade cost to the Base cost
         $FinalArray += $PilotDetails -split("xzx") # add the $PilotDetails line into the Final array (split on XZX)
-        $FinalArray +=$ValueArray # add the Updgrades to the Array
+        If ($ValueArray.length -ge 1)
+        {
+        $FinalArray +=[string]$ValueArray # add the Upgrades to the Array
+        }
         $FinalArray +="Ship Cost: $Totalcost" # Add the total ship cost to the Array 
         $FinalArray += " "# add a blank line into the Array 
         $FinalArray |out-file "$Output_Folder\$Date.txt" -Append ascii # Output as an Ascii txt file (for now)
+        #(Get-Content "$Output_Folder\$Date.txt") | Where-Object {$_.trim() -ne "" } | Set-Content "$Output_Folder\$Date.txt"
         #$FinalArray
         $Global:Listcost=[int]$Totalcost # add the total cost to the List cost (the list cost is summed up in 6.0
         
